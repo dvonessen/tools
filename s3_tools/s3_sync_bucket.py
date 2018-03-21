@@ -15,6 +15,7 @@ parser.add_argument('--source-bucket', '-s', help='Source Bucket to sync diff fr
 parser.add_argument('--destination-bucket', '-d', help='Destination Bucket to sync to.', required=True)
 parser.add_argument('--prefix', default='', help='Prefix to list objects from and to sync to.')
 parser.add_argument('--verbose', '-v', action='count')
+parser.add_argument('--dry-run', action='store_true', help='Simulate what will happen.')
 cmd_args = parser.parse_args()
 
 if cmd_args.verbose and cmd_args.verbose > 0:
@@ -79,16 +80,21 @@ else:
 
     diff_key = set(source_bucket_keys) - set(dest_bucket_keys)
     logger.debug('Count of Objects not in destination Bucket: {}'.format(len(diff_key)))
-    logger.debug('Objects not in destination Bucket: {}'.format(diff_key))
+    if len(diff_key) > 0:
+        logger.debug('Objects not in destination Bucket: {}'.format(diff_key))
+    else:
+        logger.debug('No Objects to sync.')
 
     for key in diff_key:
         resource = session.resource('s3')
         dest_bucket = resource.Bucket(cmd_args.destination_bucket)
         dest_obj = dest_bucket.Object(key)
-        logger.debug('Copying key: {}'.format(key))
-        dest_obj.copy(
-            {
-                'Bucket': cmd_args.source_bucket,
-                'Key': key
-            }
-        )
+        logger.debug('[DRY-RUN] Copying key: {}'.format(key))
+        if not cmd_args.dry_run:
+            logger.debug('Copying key: {}'.format(key))
+            dest_obj.copy(
+                {
+                    'Bucket': cmd_args.source_bucket,
+                    'Key': key
+                }
+            )
