@@ -5,7 +5,7 @@ import sys
 
 logging.basicConfig(
     level=logging.ERROR,
-    format='%(asctime)s [%(levelname)s] %(funcName)s line %(lineno)d: %(message)s'
+    format="%(asctime)s [%(levelname)s] %(funcName)s line %(lineno)d: %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ try:
     s3_client = session.client('s3')
     dest_bucket_resource = session.resource('s3')
 except:
-    logger.debug('', exc_info=True)
+    logger.debug("", exc_info=True)
     sys.exit(127)
 else:
 
@@ -52,7 +52,7 @@ else:
                 Prefix=cmd_args.prefix
             )
             break
-    logger.debug('Count of Keys in source bucket: {}'.format(len(source_bucket_keys)))
+    logger.debug("Count of Keys in source bucket: {}".format(len(source_bucket_keys)))
 
     dest_bucket_resp = s3_client.list_objects_v2(
             Bucket=cmd_args.destination_bucket,
@@ -76,22 +76,22 @@ else:
                 Prefix=cmd_args.prefix
             )
             break
-    logger.debug('Count of Keys in destination bucket: {}'.format(len(dest_bucket_keys)))
+    logger.debug("Count of Keys in destination bucket: {}".format(len(dest_bucket_keys)))
 
     diff_key = set(source_bucket_keys) - set(dest_bucket_keys)
-    logger.debug('Count of Objects not in destination Bucket: {}'.format(len(diff_key)))
+    logger.debug("Count of Objects not in destination Bucket: {}".format(len(diff_key)))
     if len(diff_key) > 0:
-        logger.debug('Objects not in destination Bucket: {}'.format(diff_key))
+        logger.debug("Objects not in destination Bucket: {}".format(diff_key))
     else:
-        logger.debug('No Objects to sync.')
+        logger.debug("No Objects to sync.")
 
     for key in diff_key:
         resource = session.resource('s3')
         dest_bucket = resource.Bucket(cmd_args.destination_bucket)
         dest_obj = dest_bucket.Object(key)
-        logger.debug('[DRY-RUN] Copying key: {}'.format(key))
+        logger.debug("[DRY-RUN] Copying key: {}".format(key))
         if not cmd_args.dry_run:
-            logger.debug('Copying key: {}'.format(key))
+            logger.debug("Copying key: {}".format(key))
             dest_obj.copy(
                 {
                     'Bucket': cmd_args.source_bucket,
