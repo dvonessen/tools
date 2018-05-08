@@ -89,12 +89,13 @@ class TransitionObjects(threading.Thread):
             self.key = q.get()
             self.dest_obj = self.s3.Object(self.bucket, self.key)
             try:
-                self.copy_source = {'Bucket': self.bucket, 'Key': self.key}
-                self.dest_obj.copy_from(
-                    self.copy_source,
-                    ExtraArgs={'StorageClass': self.storage_class}
-                )
-                q.task_done()
+                if self.dest_obj.storage_class != self.storage_class:
+                    self.copy_source = {'Bucket': self.bucket, 'Key': self.key}
+                    self.dest_obj.copy_from(
+                        self.copy_source,
+                        ExtraArgs={'StorageClass': self.storage_class}
+                    )
+                    q.task_done()
             except ConnectionRefusedError as exc:
                 logger.error("To many connections open.\n\
                             Put {} back to queue.".format(self.key))
